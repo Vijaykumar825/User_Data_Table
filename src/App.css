@@ -135,7 +135,7 @@ body {
 
 .input,
 .select {
-  width: 100%;
+  width: 90%;
   padding: 12px 14px;
   background: rgba(255,255,255,0.035);
   border: 1px solid var(--border);
