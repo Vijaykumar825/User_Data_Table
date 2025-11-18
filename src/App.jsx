@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import Header from "./component/Header";
+import Controls from "./component/Controls";
+import UserTable from "./component/UserTable";
+import Pagination from "./component/Pagination";
+import Footer from "./component/Footer";
+import Spinner from "./component/Spinner";
+import ErrorBanner from "./component/ErrorBanner";
 
 const API_BASE = "https://reqres.in/api/users";
 
@@ -167,176 +174,55 @@ function App() {
 
   return (
     <div className="container">
-      <header className="header">
-        <h1>User Directory</h1>
-        <p className="sub">ReqRes demo • Search • Sort • Filter • Pagination</p>
-      </header>
+      <Header />
 
-      <section className="controls">
-        <input
-          className="input"
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <Controls
+        search={search}
+        setSearch={setSearch}
+        emailDomain={emailDomain}
+        setEmailDomain={setEmailDomain}
+        emailDomains={emailDomains}
+        firstLetter={firstLetter}
+        setFirstLetter={setFirstLetter}
+        firstLetters={firstLetters}
+        sortKey={sortKey}
+        setSortKey={setSortKey}
+        sortDir={sortDir}
+        setSortDir={setSortDir}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        onReset={() => {
+          setSearch("");
+          setEmailDomain("");
+          setFirstLetter("");
+          setSortKey("first_name");
+          setSortDir("asc");
+          setPageSize(6);
+        }}
+      />
 
-        <select
-          className="select"
-          value={emailDomain}
-          onChange={(e) => setEmailDomain(e.target.value)}
-        >
-          <option value="">All domains</option>
-          {emailDomains.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="select"
-          value={firstLetter}
-          onChange={(e) => setFirstLetter(e.target.value)}
-        >
-          <option value="">Any first letter</option>
-          {firstLetters.map((l) => (
-            <option key={l} value={l}>
-              {l}
-            </option>
-          ))}
-        </select>
-
-        <select
-          className="select"
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value)}
-        >
-          <option value="first_name">Sort by First Name</option>
-          <option value="email">Sort by Email</option>
-        </select>
-        <button
-          className="btn"
-          onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-        >
-          {sortDir === "asc" ? "Asc" : "Desc"}
-        </button>
-
-        <select
-          className="select"
-          value={pageSize}
-          onChange={(e) => setPageSize(Number(e.target.value))}
-        >
-          <option value={6}>6 / page</option>
-          <option value={12}>12 / page</option>
-          <option value={24}>24 / page</option>
-        </select>
-
-        <button
-          className="btn light"
-          onClick={() => {
-            setSearch("");
-            setEmailDomain("");
-            setFirstLetter("");
-            setSortKey("first_name");
-            setSortDir("asc");
-            setPageSize(6);
-          }}
-        >
-          Reset
-        </button>
-      </section>
-
-      {error && <div className="error">{error}</div>}
+      {error && <ErrorBanner message={error} />}
       {loading ? (
-        <div className="spinnerWrap">
-          <div className="spinner" />
-        </div>
+        <Spinner />
       ) : (
         <>
-          <div className="tableWrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Avatar</th>
-                  <th
-                    className="sortable"
-                    onClick={() => toggleSort("first_name")}
-                  >
-                    First Name{" "}
-                    {sortKey === "first_name" && (
-                      <span className="sort">
-                        {sortDir === "asc" ? "▲" : "▼"}
-                      </span>
-                    )}
-                  </th>
-                  <th>Last Name</th>
-                  <th className="sortable" onClick={() => toggleSort("email")}>
-                    Email{" "}
-                    {sortKey === "email" && (
-                      <span className="sort">
-                        {sortDir === "asc" ? "▲" : "▼"}
-                      </span>
-                    )}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {paged.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="empty">
-                      No users found.
-                    </td>
-                  </tr>
-                ) : (
-                  paged.map((u) => (
-                    <tr key={u.id}>
-                      <td>
-                        <img
-                          className="avatar"
-                          src={u.avatar}
-                          alt={`${u.first_name} ${u.last_name}`}
-                        />
-                      </td>
-                      <td>{u.first_name}</td>
-                      <td>{u.last_name}</td>
-                      <td>
-                        <a href={`mailto:${u.email}`}>{u.email}</a>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <UserTable
+            paged={paged}
+            sortKey={sortKey}
+            sortDir={sortDir}
+            toggleSort={toggleSort}
+          />
 
-          <div className="pagination">
-            <button
-              className="btn"
-              disabled={currentPage === 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Prev
-            </button>
-            <span className="pageInfo">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              className="btn"
-              disabled={currentPage === totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-            </button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPrev={() => setPage((p) => Math.max(1, p - 1))}
+            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+          />
         </>
       )}
 
-      <footer className="footer">
-        <a href="https://reqres.in/" target="_blank" rel="noreferrer">
-          API: ReqRes
-        </a>
-      </footer>
+      <Footer />
     </div>
   );
 }
